@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { ChevronDown, Calendar, Tag, CreditCard, PenTool, Trash2, X } from "lucide-react";
+import { ChevronDown, Calendar, Clock, Tag, CreditCard, PenTool, Trash2, X } from "lucide-react";
 import { Category, PaymentMethod, Expense } from "../types";
 import { getTodayDateString } from "../utils";
 
@@ -12,12 +12,20 @@ interface AddExpenseModalProps {
     category: Category;
     paymentMethod: PaymentMethod;
     date: string;
+    time?: string;
   }) => void;
   onDelete?: (id: string) => void;
   editExpense?: Expense | null;
 }
 
 type NestedPicker = "none" | "date";
+
+const getTodayTimeString = (): string => {
+  const d = new Date();
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+};
 
 export default function AddExpenseModal({
   isOpen,
@@ -31,6 +39,7 @@ export default function AddExpenseModal({
   const [category, setCategory] = useState<Category>(Category.Other);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.Cash);
   const [expenseDate, setExpenseDate] = useState(getTodayDateString());
+  const [expenseTime, setExpenseTime] = useState(getTodayTimeString());
 
   const [activePicker, setActivePicker] = useState<NestedPicker>("none");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -52,12 +61,14 @@ export default function AddExpenseModal({
       setCategory(editExpense.category);
       setPaymentMethod(editExpense.paymentMethod);
       setExpenseDate(editExpense.date);
+      setExpenseTime(editExpense.time || getTodayTimeString());
     } else {
       setTitle("");
       setAmountStr("");
       setCategory(Category.Other);
       setPaymentMethod(PaymentMethod.Cash);
       setExpenseDate(getTodayDateString());
+      setExpenseTime(getTodayTimeString());
     }
     setActivePicker("none");
     setShowDeleteConfirm(false);
@@ -88,7 +99,8 @@ export default function AddExpenseModal({
       amount: rawVal,
       category,
       paymentMethod,
-      date: expenseDate
+      date: expenseDate,
+      time: expenseTime
     });
   };
 
@@ -199,6 +211,20 @@ export default function AddExpenseModal({
                   type="date"
                   value={expenseDate}
                   onChange={(e) => setExpenseDate(e.target.value)}
+                  className="bg-transparent text-white focus:outline-none text-[16px] font-sans text-right appearance-none"
+                />
+              </div>
+            </div>
+
+            {/* Time Row */}
+            <div className="flex items-center justify-between py-3 px-4">
+              <span className="text-gray-400 select-none font-medium text-sm">Time</span>
+              <div className="flex items-center gap-1 bg-white/10 dark:bg-white/[0.08] px-3 py-1.5 rounded-lg select-pointer relative">
+                <Clock size={14} className="text-gray-400 mr-1.5" />
+                <input
+                  type="time"
+                  value={expenseTime}
+                  onChange={(e) => setExpenseTime(e.target.value)}
                   className="bg-transparent text-white focus:outline-none text-[16px] font-sans text-right appearance-none"
                 />
               </div>

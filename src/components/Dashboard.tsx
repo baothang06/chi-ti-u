@@ -109,8 +109,17 @@ export default function Dashboard({
     .filter((e) => e.date === systemReferenceDateStr)
     .reduce((sum, item) => sum + item.amount, 0);
 
-  // Helper to determine simulated transaction hour deterministically based on title & id
-  const getSimulatedHour = (title: string, id: string): number => {
+  // Helper to determine transaction hour based on saved time or title & id deterministic fallback
+  const getSimulatedHour = (expense: Expense): number => {
+    if (expense.time) {
+      const parts = expense.time.split(":");
+      if (parts.length >= 1) {
+        const h = parseInt(parts[0], 10);
+        if (!isNaN(h)) return h;
+      }
+    }
+    const title = expense.title;
+    const id = expense.id;
     const t = title.toLowerCase();
     if (t.includes("sáng") || t.includes("cà phê") || t.includes("coffee") || t.includes("bún") || t.includes("phở")) return 8;
     if (t.includes("trưa") || t.includes("lunch") || t.includes("cơm")) return 12;
@@ -367,7 +376,7 @@ export default function Dashboard({
 
       if (filters.period === Period.Today) {
         // Group by hour ranges
-        const hr = getSimulatedHour(expense.title, expense.id);
+        const hr = getSimulatedHour(expense);
         if (hr >= 23 || hr < 6) {
           groupKey = "h23";
           groupTitle = "Đêm muộn (23:00 - 06:00)";
@@ -436,7 +445,7 @@ export default function Dashboard({
         const totalAmount = data.expenses.reduce((s, e) => s + e.amount, 0);
         const sortedExpenses = [...data.expenses].sort((a, b) => {
           if (filters.period === Period.Today) {
-            return getSimulatedHour(b.title, b.id) - getSimulatedHour(a.title, a.id);
+            return getSimulatedHour(b) - getSimulatedHour(a);
           }
           return 0;
         });
@@ -488,7 +497,7 @@ export default function Dashboard({
       )}
 
       {/* Primary header list viewport */}
-      <div className="flex flex-col flex-1 px-5 pt-[calc(1.25rem+env(safe-area-inset-top,0px))] pb-[calc(5rem+env(safe-area-inset-bottom,0px))] overflow-y-auto">
+      <div className="flex flex-col flex-1 px-5 pt-3 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] overflow-y-auto">
         
         {/* TOP STATUS NAVIGATION BAR ROW */}
         <div className="flex items-center justify-between mb-6 relative mt-1 shrink-0">
@@ -756,8 +765,8 @@ export default function Dashboard({
 
                   <div className="bg-[#1C1C1E] border border-white/[0.04] rounded-2xl p-2.5 flex flex-col divide-y divide-white/[0.04]">
                     {group.expenses.map((expense) => {
-                      const hr = getSimulatedHour(expense.title, expense.id);
-                      const hourStr = `${hr.toString().padStart(2, "0")}:00`;
+                      const hr = getSimulatedHour(expense);
+                      const hourStr = expense.time || `${hr.toString().padStart(2, "0")}:00`;
                       return (
                         <button
                           key={expense.id}

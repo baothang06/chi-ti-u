@@ -28,6 +28,7 @@ export interface Expense {
   category: Category;
   paymentMethod: PaymentMethod;
   date: string; // ISO String (YYYY-MM-DD)
+  time?: string; // "HH:MM" e.g. "10:15"
 }
 
 export interface Filters {

@@ -1,8 +1,57 @@
 import React, { useState, useEffect } from "react";
+import { Wifi } from "lucide-react";
 import { Expense, Category, PaymentMethod, Filters, Period } from "./types";
 import { seedInitialExpenses, saveExpenses } from "./utils";
 import Dashboard from "./components/Dashboard";
 import AddExpenseModal from "./components/AddExpenseModal";
+
+function IOSStatusBar() {
+  const [currentTime, setCurrentTime] = useState("");
+
+  useEffect(() => {
+    const updateTime = () => {
+      const d = new Date();
+      const hours = String(d.getHours()).padStart(2, "0");
+      const minutes = String(d.getMinutes()).padStart(2, "0");
+      setCurrentTime(`${hours}:${minutes}`);
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="w-full h-11 bg-black px-6 flex items-center justify-between select-none shrink-0 z-40 text-[14px] font-sans font-semibold tracking-tight text-white/95 relative">
+      {/* Time on left */}
+      <span className="text-[14px] ml-1">{currentTime}</span>
+      
+      {/* iOS styled notch visual element in center for desktop framing */}
+      <div className="hidden md:block absolute left-1/2 -translate-x-1/2 top-0 w-32 h-6 bg-black rounded-b-2xl z-50 pointer-events-none" />
+
+      {/* iOS style top status indicators on right */}
+      <div className="flex items-center gap-1.5 text-[12px] opacity-90 mr-1">
+        {/* Signal icon using bars */}
+        <div className="flex items-end gap-[2px] h-3 w-4 pb-[1px]" aria-label="Signal Strength">
+          <div className="w-[3px] h-[3px] bg-white rounded-[0.5px]"></div>
+          <div className="w-[3px] h-[5px] bg-white rounded-[0.5px]"></div>
+          <div className="w-[3px] h-[8px] bg-white rounded-[0.5px]"></div>
+          <div className="w-[3px] h-[10px] bg-white rounded-[0.5px]"></div>
+        </div>
+        
+        {/* Wifi icon */}
+        <Wifi size={13} strokeWidth={2.5} />
+        
+        {/* Battery icon */}
+        <div className="flex items-center" aria-label="Battery Status">
+          <div className="w-[20px] h-[11px] border border-white/50 rounded-[3px] p-[1.5px] flex items-center relative">
+            <div className="h-full w-full bg-white rounded-[1px]"></div>
+          </div>
+          <div className="w-[1.5px] h-[4px] bg-white/50 rounded-r-[1px] ml-[1px]"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   const [activeProfile, setActiveProfile] = useState<string>("Thang");
@@ -242,7 +291,8 @@ export default function App() {
         </div>
         
         {/* Display screen body content wrapping Dashboard */}
-        <div className="flex-1 w-full overflow-hidden relative">
+        <div className="flex-1 w-full overflow-hidden relative flex flex-col">
+          <IOSStatusBar />
           <Dashboard
             expenses={expenses}
             onOpenAddModal={() => {
