@@ -15,9 +15,27 @@ export const formatAxisNumber = (value: number): string => {
     .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };
 
+// Parse "YYYY-MM-DD" local date string robustly without timezone/UTC shift
+export const parseLocalDate = (dateStr: string): Date => {
+  if (!dateStr) return new Date();
+  const parts = dateStr.split("-");
+  if (parts.length === 3) {
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1; // 0-indexed month
+    const day = parseInt(parts[2], 10);
+    // Use midday to prevent daylight savings shifts from changing the calendar date
+    return new Date(year, month, day, 12, 0, 0, 0);
+  }
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) {
+    return new Date();
+  }
+  return d;
+};
+
 // Format date to "16 Jun 2026"
 export const formatDateString = (dateStr: string): string => {
-  const date = new Date(dateStr);
+  const date = parseLocalDate(dateStr);
   if (isNaN(date.getTime())) {
     return dateStr;
   }
@@ -33,7 +51,7 @@ export const formatDateString = (dateStr: string): string => {
 
 // Get day of week abbreviation from ISO date string
 export const getDayOfWeek = (dateStr: string): string => {
-  const date = new Date(dateStr);
+  const date = parseLocalDate(dateStr);
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   return days[date.getDay()];
 };
@@ -101,22 +119,22 @@ export const saveExpenses = (expenses: Expense[]): void => {
 
 // Check if an expense fits a particular period filter relative to a specific reference date (Default is June 16, 2026)
 export const matchesPeriod = (expenseDateStr: string, period: Period, refDateStr: string = "2026-06-16"): boolean => {
-  const refDate = new Date(refDateStr);
-  const expDate = new Date(expenseDateStr);
+  const refDate = parseLocalDate(refDateStr);
+  const expDate = parseLocalDate(expenseDateStr);
 
-  // Set hours to midday/zero for clean date comparisons
-  refDate.setHours(0, 0, 0, 0);
-  expDate.setHours(0, 0, 0, 0);
+  // Set hours to midday for clean date comparisons
+  refDate.setHours(12, 0, 0, 0);
+  expDate.setHours(12, 0, 0, 0);
 
   const diffTime = refDate.getTime() - expDate.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
   switch (period) {
     case Period.Today:
       return diffDays === 0;
 
     case Period.ThisWeek: {
-      // Within last 7 days of the reference Tuesday
+      // Within last 7 days of the reference Tue/Today
       return diffDays >= 0 && diffDays < 7;
     }
 

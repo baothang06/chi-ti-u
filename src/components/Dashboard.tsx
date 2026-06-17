@@ -21,7 +21,7 @@ import {
   Trash2
 } from "lucide-react";
 import { Expense, Category, PaymentMethod, Filters, Period } from "../types";
-import { formatVND, formatDateString, getDayOfWeek, formatAxisNumber, getTodayDateString } from "../utils";
+import { formatVND, formatDateString, getDayOfWeek, formatAxisNumber, getTodayDateString, parseLocalDate, matchesPeriod } from "../utils";
 import FilterPopover from "./FilterPopover";
 
 interface DashboardProps {
@@ -146,7 +146,7 @@ export default function Dashboard({
 
   if (filters.period === Period.Today || filters.period === Period.ThisWeek) {
     // TODAY & THIS WEEK: Dynamically compute the last 7 days ending with today's date
-    const refDateObj = new Date(systemReferenceDateStr);
+    const refDateObj = parseLocalDate(systemReferenceDateStr);
     const chartDays = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date(refDateObj);
@@ -179,7 +179,7 @@ export default function Dashboard({
 
   } else if (filters.period === Period.ThisMonth) {
     // 3. THIS MONTH: Spent 5 columns (1-6, 7-12, 13-18, 19-24, 25-31) with dynamic month label
-    const refDateObj = new Date(systemReferenceDateStr);
+    const refDateObj = parseLocalDate(systemReferenceDateStr);
     const months = [
       "Jan", "Feb", "Mar", "Apr", "May", "Jun",
       "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
@@ -193,14 +193,14 @@ export default function Dashboard({
       { label: "25-31", min: 25, max: 31, amount: 0, hoverLabel: `25 - 31 tháng ${monthAbbrev}`, keyId: "m5" }
     ];
 
-    const refDate = new Date(systemReferenceDateStr);
+    const refDate = parseLocalDate(systemReferenceDateStr);
     const monthExpenses = chartFilteredExpenses.filter((e) => {
-      const expDate = new Date(e.date);
+      const expDate = parseLocalDate(e.date);
       return expDate.getFullYear() === refDate.getFullYear() && expDate.getMonth() === refDate.getMonth();
     });
 
     monthExpenses.forEach((e) => {
-      const dayNum = new Date(e.date).getDate();
+      const dayNum = parseLocalDate(e.date).getDate();
       const bin = monthBins.find((b) => dayNum >= b.min && dayNum <= b.max);
       if (bin) {
         bin.amount += e.amount;
@@ -231,15 +231,15 @@ export default function Dashboard({
       { label: "D", mIdx: 11, labelFull: "Dec", keyId: "y12" }
     ];
 
-    const refDate = new Date(systemReferenceDateStr);
+    const refDate = parseLocalDate(systemReferenceDateStr);
     const yearExpenses = chartFilteredExpenses.filter((e) => {
-      const expDate = new Date(e.date);
+      const expDate = parseLocalDate(e.date);
       return expDate.getFullYear() === refDate.getFullYear();
     });
 
     chartValues = yearMonths.map((ym) => {
       const total = yearExpenses
-        .filter((e) => new Date(e.date).getMonth() === ym.mIdx)
+        .filter((e) => parseLocalDate(e.date).getMonth() === ym.mIdx)
         .reduce((sum, item) => sum + item.amount, 0);
       return {
         label: ym.label,
@@ -252,14 +252,14 @@ export default function Dashboard({
   } else {
     // 5. ALL TIME: Spent by year
     const baseYears = [2024, 2025, 2026];
-    const txYears = chartFilteredExpenses.map((e) => new Date(e.date).getFullYear());
+    const txYears = chartFilteredExpenses.map((e) => parseLocalDate(e.date).getFullYear());
     const unionYears = Array.from(new Set([...baseYears, ...txYears]))
       .filter((y) => !isNaN(y))
       .sort((a, b) => a - b);
 
     chartValues = unionYears.map((yr) => {
       const total = chartFilteredExpenses
-        .filter((e) => new Date(e.date).getFullYear() === yr)
+        .filter((e) => parseLocalDate(e.date).getFullYear() === yr)
         .reduce((sum, item) => sum + item.amount, 0);
       return {
         label: yr.toString(),
@@ -301,7 +301,7 @@ export default function Dashboard({
         (q.endsWith("k") && rawAmountStr.startsWith(cleanedQ));
 
       // Date matching (raw date "2026-06-16", formatted "16 Jun 2026", and traditional Vietnamese representations)
-      const expDate = new Date(item.date);
+      const expDate = parseLocalDate(item.date);
       const day = expDate.getDate();
       const month = expDate.getMonth() + 1;
       const year = expDate.getFullYear();
@@ -341,24 +341,7 @@ export default function Dashboard({
     }
 
     // D. Period check
-    const refDate = new Date(systemReferenceDateStr);
-    const expDate = new Date(item.date);
-    refDate.setHours(0, 0, 0, 0);
-    expDate.setHours(0, 0, 0, 0);
-
-    const diffDays = Math.floor((refDate.getTime() - expDate.getTime()) / (1000 * 60 * 60 * 24));
-
-    if (filters.period === Period.Today) {
-      return diffDays === 0;
-    } else if (filters.period === Period.ThisWeek) {
-      return diffDays >= 0 && diffDays < 7;
-    } else if (filters.period === Period.ThisMonth) {
-      return expDate.getFullYear() === refDate.getFullYear() && expDate.getMonth() === refDate.getMonth();
-    } else if (filters.period === Period.ThisYear) {
-      return expDate.getFullYear() === refDate.getFullYear();
-    }
-
-    return true; // AllTime
+    return matchesPeriod(item.date, filters.period, systemReferenceDateStr);
   };
 
   const filteredExpenses = expenses.filter(checkFiltersAndSearch);
@@ -375,12 +358,12 @@ export default function Dashboard({
       let groupTitle = "";
       let sortOrder = 0;
 
-      const refDate = new Date(systemReferenceDateStr);
-      const expDate = new Date(expense.date);
-      refDate.setHours(0, 0, 0, 0);
-      expDate.setHours(0, 0, 0, 0);
+      const refDate = parseLocalDate(systemReferenceDateStr);
+      const expDate = parseLocalDate(expense.date);
+      refDate.setHours(12, 0, 0, 0);
+      expDate.setHours(12, 0, 0, 0);
 
-      const diffDays = Math.floor((refDate.getTime() - expDate.getTime()) / (1000 * 60 * 60 * 24));
+      const diffDays = Math.round((refDate.getTime() - expDate.getTime()) / (1000 * 60 * 60 * 24));
 
       if (filters.period === Period.Today) {
         // Group by hour ranges
@@ -415,15 +398,16 @@ export default function Dashboard({
         groupKey = expense.date;
         sortOrder = expDate.getTime();
 
+        const dayNum = expDate.getDate();
+        const monthNum = expDate.getMonth() + 1;
+
         if (diffDays === 0) {
-          groupTitle = "Hôm nay, 16 Th0 6";
+          groupTitle = `Hôm nay, ${dayNum} Th0 ${monthNum}`;
         } else if (diffDays === 1) {
-          groupTitle = "Hôm qua, 15 Th0 6";
+          groupTitle = `Hôm qua, ${dayNum} Th0 ${monthNum}`;
         } else {
           const daysVN = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
           const dayName = daysVN[expDate.getDay()];
-          const dayNum = expDate.getDate();
-          const monthNum = expDate.getMonth() + 1;
           groupTitle = `${dayName}, ${dayNum} Th0 ${monthNum}`;
         }
       } else {
