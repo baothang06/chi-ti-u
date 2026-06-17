@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Signal, Wifi, Battery } from "lucide-react";
 import { Expense, Category, PaymentMethod, Filters, Period } from "./types";
 import { seedInitialExpenses, saveExpenses } from "./utils";
 import Dashboard from "./components/Dashboard";
@@ -240,20 +239,6 @@ export default function App() {
       {/* Main Responsive Mobile Frame (Adapts to full screen on mobile, styled device on desktop) */}
       <div className="w-full max-w-md min-h-screen md:min-h-[844px] md:max-h-[844px] md:rounded-[40px] md:border-8 md:border-[#2C2C2E] md:shadow-[0_25px_60px_rgba(0,0,0,0.85)] bg-black flex flex-col relative overflow-hidden transition-all duration-300">
         
-        {/* iOS Native Clock and Carrier Signal Widgets Status Bar Row */}
-        <div className="h-10 px-6 pt-2 select-none shrink-0 flex items-center justify-between text-[11px] font-semibold text-white/90 z-20 font-sans tracking-wide">
-          <span>13:21</span>
-          <div className="flex items-center gap-1.5">
-            <Signal size={12} className="text-white/90 stroke-[2.5]" />
-            <span className="text-[9px] font-mono select-none tracking-tighter">LTE</span>
-            <Wifi size={12} className="text-white/90" />
-            <div className="flex items-center gap-0.5 ml-1 select-none">
-              <span className="text-[8px] font-sans font-bold pr-0.5">41%</span>
-              <Battery size={16} className="text-white/90" />
-            </div>
-          </div>
-        </div>
-
         {/* Display screen body content wrapping Dashboard */}
         <div className="flex-1 w-full overflow-hidden relative">
           <Dashboard

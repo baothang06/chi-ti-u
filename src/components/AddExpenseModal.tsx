@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ChevronDown, Calendar, Tag, CreditCard, PenTool, Trash2, X } from "lucide-react";
 import { Category, PaymentMethod, Expense } from "../types";
-import IOSKeyboard from "./iOSKeyboard";
 
 interface AddExpenseModalProps {
   isOpen: boolean;
@@ -33,7 +32,6 @@ export default function AddExpenseModal({
   const [expenseDate, setExpenseDate] = useState("2026-06-16");
 
   const [activePicker, setActivePicker] = useState<NestedPicker>("none");
-  const [focusedField, setFocusedField] = useState<"title" | "amount" | null>(null);
 
   const titleInputRef = useRef<HTMLInputElement>(null);
   const amountInputRef = useRef<HTMLInputElement>(null);
@@ -54,7 +52,6 @@ export default function AddExpenseModal({
       setExpenseDate("2026-06-16");
     }
     setActivePicker("none");
-    setFocusedField(isOpen ? "title" : null);
 
     if (isOpen) {
       setTimeout(() => {
@@ -88,30 +85,6 @@ export default function AddExpenseModal({
   const handleDelete = () => {
     if (editExpense && onDelete) {
       onDelete(editExpense.id);
-    }
-  };
-
-  // Keyboard state update handoffs
-  const handleVirtualKeyPress = (char: string) => {
-    if (focusedField === "title") {
-      setTitle((prev) => prev + char);
-    } else if (focusedField === "amount") {
-      if (char === "." && amountStr.includes(".")) return;
-      setAmountStr((prev) => prev + char);
-    }
-  };
-
-  const handleVirtualDelete = () => {
-    if (focusedField === "title") {
-      setTitle((prev) => prev.slice(0, -1));
-    } else if (focusedField === "amount") {
-      setAmountStr((prev) => prev.slice(0, -1));
-    }
-  };
-
-  const handleVirtualSpace = () => {
-    if (focusedField === "title") {
-      setTitle((prev) => prev + " ");
     }
   };
 
@@ -167,7 +140,6 @@ export default function AddExpenseModal({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 onFocus={() => {
-                  setFocusedField("title");
                   setActivePicker("none");
                 }}
                 placeholder="Expense name"
@@ -188,7 +160,6 @@ export default function AddExpenseModal({
                     setAmountStr(clean);
                   }}
                   onFocus={() => {
-                    setFocusedField("amount");
                     setActivePicker("none");
                   }}
                   placeholder="0.00"
@@ -224,27 +195,7 @@ export default function AddExpenseModal({
             </button>
           )}
 
-          {/* Quick instructions indicator for better UX */}
-          {!focusedField && activePicker === "none" && (
-            <div className="text-[12px] text-gray-500 text-center select-none py-4 leading-normal">
-              Tap fields to edit. Tap Title or Amount to deploy the iOS virtual mock screen keyboard.
-            </div>
-          )}
-
         </div>
-
-        {/* Dynamic slides-in virtual iOS Keyboard to fulfill the visual keyboard reference screenshots */}
-        {focusedField && (
-          <div className="shrink-0">
-            <IOSKeyboard
-              onKeyPress={handleVirtualKeyPress}
-              onDelete={handleVirtualDelete}
-              onSpace={handleVirtualSpace}
-              onClose={() => setFocusedField(null)}
-              numericOnly={focusedField === "amount"}
-            />
-          </div>
-        )}
 
       </div>
     </div>
