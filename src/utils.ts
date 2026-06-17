@@ -135,3 +135,12 @@ export const matchesPeriod = (expenseDateStr: string, period: Period, refDateStr
       return true;
   }
 };
+
+export const getTodayDateString = (): string => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ChevronDown, Calendar, Tag, CreditCard, PenTool, Trash2, X } from "lucide-react";
 import { Category, PaymentMethod, Expense } from "../types";
+import { getTodayDateString } from "../utils";
 
 interface AddExpenseModalProps {
   isOpen: boolean;
@@ -17,14 +18,6 @@ interface AddExpenseModalProps {
 }
 
 type NestedPicker = "none" | "date";
-
-const getTodayDateString = (): string => {
-  const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
 
 export default function AddExpenseModal({
   isOpen,

@@ -21,7 +21,7 @@ import {
   Trash2
 } from "lucide-react";
 import { Expense, Category, PaymentMethod, Filters, Period } from "../types";
-import { formatVND, formatDateString, getDayOfWeek, formatAxisNumber } from "../utils";
+import { formatVND, formatDateString, getDayOfWeek, formatAxisNumber, getTodayDateString } from "../utils";
 import FilterPopover from "./FilterPopover";
 
 interface DashboardProps {
@@ -59,8 +59,8 @@ export default function Dashboard({
   const [showSettingsCard, setShowSettingsCard] = useState(false);
   const [hoveredBarIndex, setHoveredBarIndex] = useState<number | null>(null);
 
-  // Default Reference Date used for calculations in this design prompt: June 16, 2026 (Tuesday)
-  const systemReferenceDateStr = "2026-06-16";
+  // Dynamic Reference Date (Today) to ensure newly added items are reflected immediately
+  const systemReferenceDateStr = getTodayDateString();
 
   // Category to Icon mapping function
   const getCategoryIcon = (cat: Category) => {
@@ -145,16 +145,24 @@ export default function Dashboard({
   let chartValues: { label: string; amount: number; hoverLabel?: string; keyId: string; dateStr?: string }[] = [];
 
   if (filters.period === Period.Today || filters.period === Period.ThisWeek) {
-    // TODAY & THIS WEEK: Spent 7 days (Wed Thu Fri Sat Sun Mon Tue)
-    const chartDays = [
-      { dateStr: "2026-06-10", label: "Wed", keyId: "w10" },
-      { dateStr: "2026-06-11", label: "Thu", keyId: "w11" },
-      { dateStr: "2026-06-12", label: "Fri", keyId: "w12" },
-      { dateStr: "2026-06-13", label: "Sat", keyId: "w13" },
-      { dateStr: "2026-06-14", label: "Sun", keyId: "w14" },
-      { dateStr: "2026-06-15", label: "Mon", keyId: "w15" },
-      { dateStr: "2026-06-16", label: "Tue", keyId: "w16" }
-    ];
+    // TODAY & THIS WEEK: Dynamically compute the last 7 days ending with today's date
+    const refDateObj = new Date(systemReferenceDateStr);
+    const chartDays = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(refDateObj);
+      d.setDate(refDateObj.getDate() - i);
+      const year = d.getFullYear();
+      const monthStr = String(d.getMonth() + 1).padStart(2, "0");
+      const dateStr = String(d.getDate()).padStart(2, "0");
+      const isoDate = `${year}-${monthStr}-${dateStr}`;
+      const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const label = daysOfWeek[d.getDay()];
+      chartDays.push({
+        dateStr: isoDate,
+        label,
+        keyId: `w-${isoDate}`
+      });
+    }
 
     chartValues = chartDays.map((day) => {
       const total = chartFilteredExpenses
@@ -170,13 +178,19 @@ export default function Dashboard({
     });
 
   } else if (filters.period === Period.ThisMonth) {
-    // 3. THIS MONTH: Spent 5 columns (1-6, 7-12, 13-18, 19-24, 25-31)
+    // 3. THIS MONTH: Spent 5 columns (1-6, 7-12, 13-18, 19-24, 25-31) with dynamic month label
+    const refDateObj = new Date(systemReferenceDateStr);
+    const months = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+    const monthAbbrev = months[refDateObj.getMonth()];
     const monthBins = [
-      { label: "1-6", min: 1, max: 6, amount: 0, hoverLabel: "01 - 06 tháng Jun", keyId: "m1" },
-      { label: "7-12", min: 7, max: 12, amount: 0, hoverLabel: "07 - 12 tháng Jun", keyId: "m2" },
-      { label: "13-18", min: 13, max: 18, amount: 0, hoverLabel: "13 - 18 tháng Jun", keyId: "m3" },
-      { label: "19-24", min: 19, max: 24, amount: 0, hoverLabel: "19 - 24 tháng Jun", keyId: "m4" },
-      { label: "25-31", min: 25, max: 31, amount: 0, hoverLabel: "25 - 31 tháng Jun", keyId: "m5" }
+      { label: "1-6", min: 1, max: 6, amount: 0, hoverLabel: `01 - 06 tháng ${monthAbbrev}`, keyId: "m1" },
+      { label: "7-12", min: 7, max: 12, amount: 0, hoverLabel: `07 - 12 tháng ${monthAbbrev}`, keyId: "m2" },
+      { label: "13-18", min: 13, max: 18, amount: 0, hoverLabel: `13 - 18 tháng ${monthAbbrev}`, keyId: "m3" },
+      { label: "19-24", min: 19, max: 24, amount: 0, hoverLabel: `19 - 24 tháng ${monthAbbrev}`, keyId: "m4" },
+      { label: "25-31", min: 25, max: 31, amount: 0, hoverLabel: `25 - 31 tháng ${monthAbbrev}`, keyId: "m5" }
     ];
 
     const refDate = new Date(systemReferenceDateStr);
