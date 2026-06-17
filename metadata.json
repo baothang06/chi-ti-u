@@ -1,0 +1,6 @@
+{
+  "name": "iOS Expense Tracker",
+  "description": "A minimalist mobile expense tracking application designed with iOS dark mode aesthetic, interactive charts, filtering, and local transaction storage.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
