@@ -256,15 +256,15 @@ export default function Dashboard({
     });
   }
 
-  // Dynamically calculate chart max scaling (default index starting at 300,000 for standard view)
+  // Dynamically calculate chart max scaling (must be a multiple of 300,000 for clean 100,000 step ticks on the grid)
   const maxSpentInDays = Math.max(...chartValues.map((v) => v.amount));
-  const chartMaxScale = maxSpentInDays > 300000 ? Math.ceil(maxSpentInDays / 100000) * 100000 : 300000;
+  const chartMaxScale = maxSpentInDays > 300000 ? Math.ceil(maxSpentInDays / 300000) * 300000 : 300000;
 
-  // Axis grid labels
+  // Axis grid labels as clean integer multiples of 100,000
   const axisGridTicks = [
     chartMaxScale,
-    chartMaxScale * 0.666,
-    chartMaxScale * 0.333,
+    Math.round((chartMaxScale / 3) * 2),
+    Math.round(chartMaxScale / 3),
     0
   ];
 
@@ -490,7 +490,7 @@ export default function Dashboard({
       )}
 
       {/* Primary header list viewport */}
-      <div className="flex flex-col flex-1 p-5 overflow-y-auto">
+      <div className="flex flex-col flex-1 px-5 pt-[calc(1.25rem+env(safe-area-inset-top,0px))] pb-[calc(5rem+env(safe-area-inset-bottom,0px))] overflow-y-auto">
         
         {/* TOP STATUS NAVIGATION BAR ROW */}
         <div className="flex items-center justify-between mb-6 relative mt-1 shrink-0">
@@ -683,7 +683,7 @@ export default function Dashboard({
                       className={`w-4/5 ${maxBarWidthClass} bg-white transition-all duration-300 ${
                         isHovered ? "opacity-100 scale-x-110 shadow-lg brightness-110" : "opacity-[0.82] hover:opacity-100"
                       }`}
-                      style={{ height: `${Math.max(2, heightPercent)}%` }}
+                      style={{ height: day.amount > 0 ? `${Math.max(3, heightPercent)}%` : "0%" }}
                     />
                   </div>
                 );
@@ -806,7 +806,7 @@ export default function Dashboard({
 
       {/* FLOATING ACTION ADD BUTTON LAYOUT */}
       {!isAddModalOpen && (
-        <div className="fixed bottom-8 right-6 z-50 select-none pointer-events-auto">
+        <div className="absolute bottom-[calc(2rem+env(safe-area-inset-bottom,0px))] right-6 z-50 select-none pointer-events-auto">
           <button
             type="button"
             onClick={onOpenAddModal}

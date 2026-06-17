@@ -32,15 +32,22 @@ export default function AddExpenseModal({
   const [expenseDate, setExpenseDate] = useState("2026-06-16");
 
   const [activePicker, setActivePicker] = useState<NestedPicker>("none");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const titleInputRef = useRef<HTMLInputElement>(null);
   const amountInputRef = useRef<HTMLInputElement>(null);
+
+  const formatInputAmount = (val: string): string => {
+    const clean = val.replace(/[^0-9]/g, "");
+    if (!clean) return "";
+    return parseInt(clean, 10).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  };
 
   // Initialize fields on mount / edit transition
   useEffect(() => {
     if (editExpense) {
       setTitle(editExpense.title);
-      setAmountStr(editExpense.amount.toString());
+      setAmountStr(formatInputAmount(editExpense.amount.toString()));
       setCategory(editExpense.category);
       setPaymentMethod(editExpense.paymentMethod);
       setExpenseDate(editExpense.date);
@@ -52,6 +59,7 @@ export default function AddExpenseModal({
       setExpenseDate("2026-06-16");
     }
     setActivePicker("none");
+    setShowDeleteConfirm(false);
 
     if (isOpen) {
       setTimeout(() => {
@@ -63,7 +71,8 @@ export default function AddExpenseModal({
   if (!isOpen) return null;
 
   const handleSave = () => {
-    const rawVal = parseFloat(amountStr) || 0;
+    const cleanAmount = amountStr.replace(/\./g, "");
+    const rawVal = parseFloat(cleanAmount) || 0;
     if (!title.trim()) {
       alert("Please enter an expense title.");
       return;
@@ -82,10 +91,15 @@ export default function AddExpenseModal({
     });
   };
 
-  const handleDelete = () => {
+  const handleDeleteClick = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = () => {
     if (editExpense && onDelete) {
       onDelete(editExpense.id);
     }
+    setShowDeleteConfirm(false);
   };
 
   return (
@@ -127,42 +141,49 @@ export default function AddExpenseModal({
         </div>
 
         {/* Main interactive form card scroll space */}
-        <div className="p-5 overflow-y-auto flex-1 flex flex-col gap-5">
+        <div className="p-5 pb-32 overflow-y-auto flex flex-col gap-5">
           
           {/* iOS Rounded Dark Form block */}
           <div className="bg-[#1C1C1E] border border-white/5 rounded-2xl overflow-hidden divide-y divide-white/5 text-[15px]">
             {/* Title Row */}
-            <div className="flex items-center justify-between py-3.5 px-4">
+            <div 
+              className="flex items-center justify-between py-3.5 px-4 cursor-pointer active:bg-white/[0.02]"
+              onClick={() => titleInputRef.current?.focus()}
+            >
               <span className="text-gray-400 select-none font-medium text-sm">Title</span>
               <input
                 ref={titleInputRef}
                 type="text"
+                inputMode="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 onFocus={() => {
                   setActivePicker("none");
                 }}
                 placeholder="Expense name"
-                className="bg-transparent text-right text-white placeholder-gray-600 focus:outline-none flex-1 max-w-[180px] text-15px font-sans"
+                className="bg-transparent text-right text-white placeholder-gray-600 focus:outline-none flex-1 max-w-[220px] text-15px font-sans"
               />
             </div>
 
-            {/* Amount Row */}
-            <div className="flex items-center justify-between py-3.5 px-4 bg-white/[0.01]">
+             {/* Amount Row */}
+            <div 
+              className="flex items-center justify-between py-3.5 px-4 bg-white/[0.01] cursor-pointer active:bg-white/[0.03]"
+              onClick={() => amountInputRef.current?.focus()}
+            >
               <span className="text-gray-400 select-none font-medium text-sm">Amount</span>
               <div aria-label="amount input container" className="flex items-center gap-1.5 flex-1 justify-end">
                 <input
                   ref={amountInputRef}
                   type="text"
+                  inputMode="decimal"
                   value={amountStr}
                   onChange={(e) => {
-                    const clean = e.target.value.replace(/[^0-9.]/g, "");
-                    setAmountStr(clean);
+                    setAmountStr(formatInputAmount(e.target.value));
                   }}
                   onFocus={() => {
                     setActivePicker("none");
                   }}
-                  placeholder="0.00"
+                  placeholder="0"
                   className="bg-transparent text-right text-white placeholder-gray-600 focus:outline-none flex-1 w-full text-15px font-sans font-medium"
                 />
               </div>
@@ -187,7 +208,7 @@ export default function AddExpenseModal({
           {editExpense && onDelete && (
             <button
               type="button"
-              onClick={handleDelete}
+              onClick={handleDeleteClick}
               className="mt-2 w-full py-3 px-4 rounded-xl border border-red-500/10 bg-red-500/10 active:bg-red-500/20 text-red-400 font-medium text-[14px] flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <Trash2 size={15} />
@@ -198,6 +219,34 @@ export default function AddExpenseModal({
         </div>
 
       </div>
+
+      {/* iOS styled Delete Confirmation Modal Overlay */}
+      {showDeleteConfirm && (
+        <div className="absolute inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-6 animate-[fadeIn_0.2s_ease-out]">
+          <div className="bg-[#1C1C1E]/95 border border-white/10 rounded-2xl w-full max-w-[270px] overflow-hidden flex flex-col items-center text-center shadow-2xl animate-[zoomIn_0.15s_ease-out]">
+            <div className="p-5 flex flex-col gap-1.5">
+              <span className="text-white font-semibold text-[17px] tracking-tight font-display">Delete Expense?</span>
+              <p className="text-gray-400 text-[13px] leading-snug">Are you sure you want to delete this expense? This action cannot be undone.</p>
+            </div>
+            <div className="w-full border-t border-white/10 grid grid-cols-2 divide-x divide-white/10 h-11 text-[15px]">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                className="text-[#0A84FF] font-normal active:bg-white/[0.05] h-full flex items-center justify-center cursor-pointer hover:bg-white/[0.02] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="text-[#FF453A] font-semibold active:bg-white/[0.05] h-full flex items-center justify-center cursor-pointer hover:bg-white/[0.02] transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

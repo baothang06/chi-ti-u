@@ -8,7 +8,7 @@ export default function App() {
   const [activeProfile, setActiveProfile] = useState<string>("Thang");
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [filters, setFilters] = useState<Filters>({
-    period: Period.AllTime,
+    period: Period.Today,
     category: "All",
     paymentMethod: "All"
   });
@@ -237,7 +237,7 @@ export default function App() {
       <div className="absolute left-1/4 bottom-0 w-96 h-96 rounded-full bg-violet-500/5 blur-[120px] pointer-events-none" />
 
       {/* Main Responsive Mobile Frame (Adapts to full screen on mobile, styled device on desktop) */}
-      <div className="w-full max-w-md min-h-screen md:min-h-[844px] md:max-h-[844px] md:rounded-[40px] md:border-8 md:border-[#2C2C2E] md:shadow-[0_25px_60px_rgba(0,0,0,0.85)] bg-black flex flex-col relative overflow-hidden transition-all duration-300">
+      <div className="w-full max-w-md h-[100dvh] md:h-[844px] md:min-h-[844px] md:max-h-[844px] md:rounded-[40px] md:border-8 md:border-[#2C2C2E] md:shadow-[0_25px_60px_rgba(0,0,0,0.85)] bg-black flex flex-col relative overflow-hidden transition-all duration-300">
         
         {/* Display screen body content wrapping Dashboard */}
         <div className="flex-1 w-full overflow-hidden relative">
