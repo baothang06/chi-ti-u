@@ -18,6 +18,14 @@ interface AddExpenseModalProps {
 
 type NestedPicker = "none" | "date";
 
+const getTodayDateString = (): string => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 export default function AddExpenseModal({
   isOpen,
   onClose,
@@ -29,7 +37,7 @@ export default function AddExpenseModal({
   const [amountStr, setAmountStr] = useState("");
   const [category, setCategory] = useState<Category>(Category.Other);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.Cash);
-  const [expenseDate, setExpenseDate] = useState("2026-06-16");
+  const [expenseDate, setExpenseDate] = useState(getTodayDateString());
 
   const [activePicker, setActivePicker] = useState<NestedPicker>("none");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -56,7 +64,7 @@ export default function AddExpenseModal({
       setAmountStr("");
       setCategory(Category.Other);
       setPaymentMethod(PaymentMethod.Cash);
-      setExpenseDate("2026-06-16");
+      setExpenseDate(getTodayDateString());
     }
     setActivePicker("none");
     setShowDeleteConfirm(false);
@@ -161,7 +169,7 @@ export default function AddExpenseModal({
                   setActivePicker("none");
                 }}
                 placeholder="Expense name"
-                className="bg-transparent text-right text-white placeholder-gray-600 focus:outline-none flex-1 max-w-[220px] text-15px font-sans"
+                className="bg-transparent text-right text-white placeholder-gray-600 focus:outline-none flex-1 max-w-[220px] text-[16px] font-sans"
               />
             </div>
 
@@ -184,7 +192,7 @@ export default function AddExpenseModal({
                     setActivePicker("none");
                   }}
                   placeholder="0"
-                  className="bg-transparent text-right text-white placeholder-gray-600 focus:outline-none flex-1 w-full text-15px font-sans font-medium"
+                  className="bg-transparent text-right text-white placeholder-gray-600 focus:outline-none flex-1 w-full text-[16px] font-sans font-medium"
                 />
               </div>
             </div>
@@ -198,7 +206,7 @@ export default function AddExpenseModal({
                   type="date"
                   value={expenseDate}
                   onChange={(e) => setExpenseDate(e.target.value)}
-                  className="bg-transparent text-white focus:outline-none text-[13px] font-sans text-right appearance-none"
+                  className="bg-transparent text-white focus:outline-none text-[16px] font-sans text-right appearance-none"
                 />
               </div>
             </div>

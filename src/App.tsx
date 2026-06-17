@@ -230,14 +230,16 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050507] text-white flex flex-col justify-center items-center font-sans antialiased overflow-x-hidden selection:bg-white/20">
+    <div className="min-h-screen w-full bg-[#050507] text-white flex flex-col md:justify-center md:items-center font-sans antialiased overflow-x-hidden selection:bg-white/20">
       
-      {/* Subtle decorative glowing background layers */}
-      <div className="absolute right-0 top-0 w-80 h-80 rounded-full bg-blue-500/5 blur-[100px] pointer-events-none" />
-      <div className="absolute left-1/4 bottom-0 w-96 h-96 rounded-full bg-violet-500/5 blur-[120px] pointer-events-none" />
-
       {/* Main Responsive Mobile Frame (Adapts to full screen on mobile, styled device on desktop) */}
-      <div className="w-full max-w-md h-[100dvh] md:h-[844px] md:min-h-[844px] md:max-h-[844px] md:rounded-[40px] md:border-8 md:border-[#2C2C2E] md:shadow-[0_25px_60px_rgba(0,0,0,0.85)] bg-black flex flex-col relative overflow-hidden transition-all duration-300">
+      <div className="w-full max-w-md mx-auto h-[100dvh] md:h-[844px] md:min-h-[844px] md:max-h-[844px] md:rounded-[40px] md:border-8 md:border-[#2C2C2E] md:shadow-[0_25px_60px_rgba(0,0,0,0.85)] bg-black flex flex-col relative overflow-hidden transition-all duration-300">
+        
+        {/* Subtle decorative glowing background layers - bounded strictly inside the frame */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+          <div className="absolute right-[-10%] top-[-10%] w-72 h-72 rounded-full bg-blue-500/[0.04] blur-[80px]" />
+          <div className="absolute left-[-10%] bottom-[-10%] w-80 h-80 rounded-full bg-violet-500/[0.04] blur-[90px]" />
+        </div>
         
         {/* Display screen body content wrapping Dashboard */}
         <div className="flex-1 w-full overflow-hidden relative">

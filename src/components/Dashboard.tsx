@@ -467,7 +467,7 @@ export default function Dashboard({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search Title or Category..."
-              className="bg-transparent text-white placeholder-gray-500 focus:outline-none text-[13px] w-full font-sans"
+              className="bg-transparent text-white placeholder-gray-500 focus:outline-none text-[16px] w-full font-sans"
               autoFocus
             />
             {searchQuery && (
