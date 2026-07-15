@@ -500,82 +500,73 @@ export default function Dashboard({
         </div>
 
         {/* Scrollable Screen Content */}
-        <div className="flex-1 flex flex-col gap-6 px-5 pt-5 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] overflow-y-auto">
-          {/* SECTION 2: TOP 10 SPENDING */}
-          <div className="flex flex-col gap-3 bg-[#1C1C1E] border border-white/[0.04] rounded-2xl p-4 shadow-xl flex-1 min-h-[300px]">
-            <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-1">
-              <div className="flex items-center gap-2">
-                <TrendingUp size={16} className="text-amber-400" />
-                <span className="text-[13px] text-white font-semibold font-sans">Top 10 chi tiêu lớn nhất</span>
-              </div>
-              
-              {/* TABS */}
-              <div className="flex bg-white/[0.06] rounded-lg p-[2.5px] border border-white/[0.04]">
-                <button
-                  type="button"
-                  onClick={() => setTopSpendingPeriod("week")}
-                  className={`px-3 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
-                    topSpendingPeriod === "week"
-                      ? "bg-white text-black shadow-sm font-semibold"
-                      : "text-gray-400 hover:text-white"
-                  }`}
-                >
-                  Tuần
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTopSpendingPeriod("month")}
-                  className={`px-3 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
-                    topSpendingPeriod === "month"
-                      ? "bg-white text-black shadow-sm font-semibold"
-                      : "text-gray-400 hover:text-white"
-                  }`}
-                >
-                  Tháng
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTopSpendingPeriod("year")}
-                  className={`px-3 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
-                    topSpendingPeriod === "year"
-                      ? "bg-white text-black shadow-sm font-semibold"
-                      : "text-gray-400 hover:text-white"
-                  }`}
-                >
-                  Năm
-                </button>
-              </div>
+        <div className="flex-1 flex flex-col gap-5 px-5 pt-5 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] overflow-y-auto">
+          {/* TABS */}
+          <div className="shrink-0">
+            <div className="flex w-full bg-white/[0.06] rounded-xl p-[3px] border border-white/[0.04]">
+              <button
+                type="button"
+                onClick={() => setTopSpendingPeriod("week")}
+                className={`flex-1 py-2.5 rounded-lg text-[13px] font-semibold tracking-wide transition-all cursor-pointer text-center ${
+                  topSpendingPeriod === "week"
+                    ? "bg-white text-black shadow-sm"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                Tuần
+              </button>
+              <button
+                type="button"
+                onClick={() => setTopSpendingPeriod("month")}
+                className={`flex-1 py-2.5 rounded-lg text-[13px] font-semibold tracking-wide transition-all cursor-pointer text-center ${
+                  topSpendingPeriod === "month"
+                    ? "bg-white text-black shadow-sm"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                Tháng
+              </button>
+              <button
+                type="button"
+                onClick={() => setTopSpendingPeriod("year")}
+                className={`flex-1 py-2.5 rounded-lg text-[13px] font-semibold tracking-wide transition-all cursor-pointer text-center ${
+                  topSpendingPeriod === "year"
+                    ? "bg-white text-black shadow-sm"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                Năm
+              </button>
             </div>
+          </div>
 
-            {/* TOP 10 LIST */}
-            <div className="flex-1 overflow-y-auto divide-y divide-white/[0.04] pr-1">
+          {/* LIST CONTAINER */}
+          <div className="flex flex-col gap-2">
+            <div className="bg-[#1C1C1E] border border-white/[0.04] rounded-2xl p-2.5 flex flex-col divide-y divide-white/[0.04]">
               {getTopExpenses().length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center py-12 text-gray-500 text-xs">
+                <div className="flex flex-col items-center justify-center text-center py-12 text-gray-500 text-xs">
                   Không có giao dịch nào trong khoảng thời gian này.
                 </div>
               ) : (
                 getTopExpenses().map((expense, idx) => (
                   <div
                     key={expense.id}
-                    className="flex items-center justify-between py-3 first:pt-1 last:pb-1"
+                    className="flex items-center justify-between py-3.5 px-3 hover:bg-white/[0.02] transition-colors rounded-xl text-left"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-3.5 min-w-0">
                       <span className="text-gray-500 font-mono text-[11px] w-5 text-center shrink-0">
                         {idx + 1}
                       </span>
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-[#2C2C2E] text-white`}>
-                        {getCategoryIcon(expense.category)}
-                      </div>
                       <div className="flex flex-col min-w-0 ml-0.5">
-                        <span className="text-white text-[13px] font-semibold truncate">
+                        <span className="text-white text-[15px] font-semibold truncate">
                           {expense.title}
                         </span>
-                        <span className="text-[11px] text-gray-400 truncate">
+                        <span className="text-[11px] text-gray-400 truncate mt-0.5">
                           {formatDateString(expense.date)} {expense.time || ""}
                         </span>
                       </div>
                     </div>
-                    <span className="text-red-400 text-[14px] font-bold font-sans shrink-0 pl-2">
+                    <span className="text-red-400 text-[15px] font-bold font-sans shrink-0 pl-2">
                       -{formatVND(expense.amount)}
                     </span>
                   </div>
@@ -841,11 +832,6 @@ export default function Dashboard({
                         >
                           {/* Icon label container */}
                           <div className="flex items-center gap-3.5">
-                            {/* Categorized Apple Wallet Rounded Square */}
-                            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-[#2C2C2E] text-white">
-                              {getCategoryIcon(expense.category)}
-                            </div>
-
                             <div className="flex flex-col">
                               <span className="text-white font-medium text-[15px] group-hover:text-blue-400 transition-colors">
                                 {expense.title}
