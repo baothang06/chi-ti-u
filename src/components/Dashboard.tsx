@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import {
   ChevronDown,
+  ChevronLeft,
+  TrendingUp,
   Search,
   Clock,
-  Settings,
+  FileText,
   Plus,
   Utensils,
   ShoppingBag,
@@ -56,7 +58,9 @@ export default function Dashboard({
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilterPopover, setShowFilterPopover] = useState(false);
   const [showProfileSelector, setShowProfileSelector] = useState(false);
-  const [showSettingsCard, setShowSettingsCard] = useState(false);
+  const [showNotesCard, setShowNotesCard] = useState(false);
+  const [notesText, setNotesText] = useState(() => localStorage.getItem("user_notes") || "");
+  const [topSpendingPeriod, setTopSpendingPeriod] = useState<"week" | "month" | "year">("week");
   const [hoveredBarIndex, setHoveredBarIndex] = useState<number | null>(null);
 
   // Dynamic Reference Date (Today) to ensure newly added items are reflected immediately
@@ -134,6 +138,18 @@ export default function Dashboard({
     }
     const hours = [8, 12, 15, 18, 21, 23];
     return hours[Math.abs(hash) % hours.length];
+  };
+
+  // Get top 10 largest expenses for the selected period
+  const getTopExpenses = () => {
+    let periodEnum = Period.ThisWeek;
+    if (topSpendingPeriod === "month") periodEnum = Period.ThisMonth;
+    if (topSpendingPeriod === "year") periodEnum = Period.ThisYear;
+    
+    return expenses
+      .filter((e) => matchesPeriod(e.date, periodEnum, systemReferenceDateStr))
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 10);
   };
 
   // Filter transactions for chart (scoped to active profile, category, payment method)
@@ -461,6 +477,117 @@ export default function Dashboard({
       .sort((a, b) => b.sortOrder - a.sortOrder);
   };
 
+  if (showNotesCard) {
+    return (
+      <div className="w-full h-full bg-black text-white flex flex-col justify-between overflow-x-hidden relative select-none">
+        
+        {/* iOS style Top Navigation Bar */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.04] shrink-0 mt-2">
+          <button
+            type="button"
+            onClick={() => setShowNotesCard(false)}
+            className="flex items-center gap-1.5 text-white text-[16px] font-medium active:opacity-60 cursor-pointer"
+          >
+            <ChevronLeft size={22} className="-ml-1" />
+            <span>Quay lại</span>
+          </button>
+          
+          <span className="font-sans text-[17px] font-semibold text-white tracking-tight absolute left-1/2 -translate-x-1/2">
+            Chi tiêu lớn nhất
+          </span>
+
+          <div className="w-16" /> {/* Spacer to balance layout */}
+        </div>
+
+        {/* Scrollable Screen Content */}
+        <div className="flex-1 flex flex-col gap-6 px-5 pt-5 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] overflow-y-auto">
+          {/* SECTION 2: TOP 10 SPENDING */}
+          <div className="flex flex-col gap-3 bg-[#1C1C1E] border border-white/[0.04] rounded-2xl p-4 shadow-xl flex-1 min-h-[300px]">
+            <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-1">
+              <div className="flex items-center gap-2">
+                <TrendingUp size={16} className="text-amber-400" />
+                <span className="text-[13px] text-white font-semibold font-sans">Top 10 chi tiêu lớn nhất</span>
+              </div>
+              
+              {/* TABS */}
+              <div className="flex bg-white/[0.06] rounded-lg p-[2.5px] border border-white/[0.04]">
+                <button
+                  type="button"
+                  onClick={() => setTopSpendingPeriod("week")}
+                  className={`px-3 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
+                    topSpendingPeriod === "week"
+                      ? "bg-white text-black shadow-sm font-semibold"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  Tuần
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTopSpendingPeriod("month")}
+                  className={`px-3 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
+                    topSpendingPeriod === "month"
+                      ? "bg-white text-black shadow-sm font-semibold"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  Tháng
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTopSpendingPeriod("year")}
+                  className={`px-3 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
+                    topSpendingPeriod === "year"
+                      ? "bg-white text-black shadow-sm font-semibold"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  Năm
+                </button>
+              </div>
+            </div>
+
+            {/* TOP 10 LIST */}
+            <div className="flex-1 overflow-y-auto divide-y divide-white/[0.04] pr-1">
+              {getTopExpenses().length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-center py-12 text-gray-500 text-xs">
+                  Không có giao dịch nào trong khoảng thời gian này.
+                </div>
+              ) : (
+                getTopExpenses().map((expense, idx) => (
+                  <div
+                    key={expense.id}
+                    className="flex items-center justify-between py-3 first:pt-1 last:pb-1"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="text-gray-500 font-mono text-[11px] w-5 text-center shrink-0">
+                        {idx + 1}
+                      </span>
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-[#2C2C2E] text-white`}>
+                        {getCategoryIcon(expense.category)}
+                      </div>
+                      <div className="flex flex-col min-w-0 ml-0.5">
+                        <span className="text-white text-[13px] font-semibold truncate">
+                          {expense.title}
+                        </span>
+                        <span className="text-[11px] text-gray-400 truncate">
+                          {formatDateString(expense.date)} {expense.time || ""}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-red-400 text-[14px] font-bold font-sans shrink-0 pl-2">
+                      -{formatVND(expense.amount)}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-full bg-black text-white flex flex-col justify-between overflow-x-hidden relative select-none">
       
@@ -516,7 +643,7 @@ export default function Dashboard({
               onClick={() => {
                 setShowSearch(true);
                 setShowFilterPopover(false);
-                setShowSettingsCard(false);
+                setShowNotesCard(false);
               }}
               className="w-10 h-10 bg-[#1C1C1E] active:scale-95 rounded-full flex items-center justify-center border border-white/[0.04] cursor-pointer hover:bg-[#2C2C2E]"
             >
@@ -529,96 +656,34 @@ export default function Dashboard({
               onClick={() => {
                 setShowFilterPopover(!showFilterPopover);
                 setShowProfileSelector(false);
-                setShowSettingsCard(false);
+                setShowNotesCard(false);
               }}
               className={`w-10 h-10 active:scale-95 rounded-full flex items-center justify-center border transition-all cursor-pointer ${
                 showFilterPopover || filters.period !== Period.AllTime
-                  ? "bg-[#007AFF] border-transparent text-white"
+                  ? "bg-white border-transparent text-black"
                   : "bg-[#1C1C1E] border-white/[0.04] text-white hover:bg-[#2C2C2E]"
               }`}
             >
               <Clock size={16} />
             </button>
 
-            {/* Info and help manual card */}
+            {/* Notes and Top Spending panel Toggle */}
             <button
               type="button"
               onClick={() => {
-                setShowSettingsCard(!showSettingsCard);
+                setShowNotesCard(!showNotesCard);
                 setShowProfileSelector(false);
                 setShowFilterPopover(false);
               }}
-              className="w-10 h-10 bg-[#1C1C1E] active:scale-95 rounded-full flex items-center justify-center border border-white/[0.04] cursor-pointer hover:bg-[#2C2C2E]"
+              className={`w-10 h-10 active:scale-95 rounded-full flex items-center justify-center border transition-all cursor-pointer ${
+                showNotesCard
+                  ? "bg-white border-transparent text-black"
+                  : "bg-[#1C1C1E] border-white/[0.04] text-white hover:bg-[#2C2C2E]"
+              }`}
             >
-              <Settings size={16} className="text-white" />
+              <FileText size={16} />
             </button>
           </div>
-
-          {/* Settings Information modal */}
-          {showSettingsCard && (
-            <div className="absolute right-0 top-12 w-64 glass-popover p-4 rounded-2xl z-50 text-xs text-gray-300 leading-relaxed shadow-3xl animate-[fadeIn_0.15s_ease-out]">
-              <div className="font-semibold text-white mb-2 font-display text-[14px] flex items-center justify-between border-b border-white/5 pb-2">
-                <div className="flex items-center gap-1.5">
-                  <Settings size={14} className="text-blue-400" />
-                  <span>Cài đặt & Công cụ</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowSettingsCard(false)}
-                  className="text-gray-500 hover:text-white"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-
-              <p className="mb-3 text-[11px] text-gray-400 leading-relaxed">
-                Ứng dụng lưu trữ ngoại tuyến cục bộ. Bạn có thể chạm vào từng giao dịch bên dưới để chỉnh sửa hoặc xóa bất kỳ lúc nào.
-              </p>
-
-              <div className="flex flex-col gap-1.5 mb-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    onLoadReference();
-                    setShowSettingsCard(false);
-                  }}
-                  className="w-full text-left py-2 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 active:opacity-60 text-white transition-all flex items-center gap-2 cursor-pointer font-medium"
-                >
-                  <RefreshCw size={12} className="text-emerald-400" />
-                  <span>Khôi phục dữ liệu gốc (16/06)</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    onLoadLargeDataset();
-                    setShowSettingsCard(false);
-                  }}
-                  className="w-full text-left py-2 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 active:opacity-60 text-white transition-all flex items-center gap-2 cursor-pointer font-medium"
-                >
-                  <Sparkles size={12} className="text-[#FFCC00]" />
-                  <span>Nạp bộ dữ liệu mẫu đầy đủ</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    onClearAll();
-                    setShowSettingsCard(false);
-                  }}
-                  className="w-full text-left py-2 px-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/15 active:opacity-60 text-red-400 transition-all flex items-center gap-2 cursor-pointer font-medium"
-                >
-                  <Trash2 size={12} className="text-red-400" />
-                  <span>Xóa sạch toàn bộ giao dịch</span>
-                </button>
-              </div>
-
-              <div className="border-t border-white/5 pt-2 text-[10px] text-gray-500 flex flex-col gap-0.5">
-                <span>• Hôm nay: Thứ Ba, 16 tháng 06, 2026.</span>
-                <span>• Bàn phím ảo tự động mở khi thêm/sửa.</span>
-              </div>
-            </div>
-          )}
 
           {/* Interactive filter dropdown list menu */}
           {showFilterPopover && (
