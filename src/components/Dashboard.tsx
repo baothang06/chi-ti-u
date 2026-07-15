@@ -566,8 +566,8 @@ export default function Dashboard({
                         </span>
                       </div>
                     </div>
-                    <span className="text-red-400 text-[15px] font-bold font-sans shrink-0 pl-2">
-                      -{formatVND(expense.amount)}
+                    <span className="text-white text-[15px] font-bold font-sans shrink-0 pl-2">
+                      {formatVND(expense.amount)}
                     </span>
                   </div>
                 ))
