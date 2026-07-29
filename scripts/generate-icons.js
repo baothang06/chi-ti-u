@@ -1,0 +1,45 @@
+import sharp from 'sharp';
+import fs from 'fs';
+import path from 'path';
+
+const svgContent = `<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="0" fill="#000000"/>
+  <circle cx="256" cy="256" r="240" fill="#121212"/>
+  <path d="M 256 80 C 269.255 80 280 90.745 280 104 L 280 132.8 C 327.2 140.8 358 176 358 222 C 358 235.255 347.255 246 334 246 C 321.8 246 311.6 236.8 310.2 224.8 C 306.8 195.2 287.2 176 256 176 C 224.8 176 204 193.6 204 216 C 204 235.2 218.4 246.4 256 256 L 278 262 C 330 276 358 304 358 348 C 358 396 323.2 428.8 280 435.2 L 280 464 C 280 477.255 269.255 488 256 488 C 242.745 488 232 477.255 232 464 L 232 435.2 C 182.8 426.8 154 389.6 154 340 C 154 326.745 164.745 316 178 316 C 190.2 316 200.4 325.2 201.8 337.2 C 205.2 370 226.8 392 256 392 C 289.2 392 310 373.6 310 348 C 310 327.2 294.8 316 256 305.6 L 234 299.6 C 182 285.6 154 257.6 154 214 C 154 166.4 188.8 133.6 232 127.2 L 232 104 C 232 90.745 242.745 80 256 80 Z" fill="#FFFFFF"/>
+</svg>`;
+
+const publicDir = path.resolve(process.cwd(), 'public');
+
+if (!fs.existsSync(publicDir)) {
+  fs.mkdirSync(publicDir, { recursive: true });
+}
+
+fs.writeFileSync(path.join(publicDir, 'icon.svg'), svgContent);
+
+async function generate() {
+  const buffer = Buffer.from(svgContent);
+
+  await sharp(buffer)
+    .resize(512, 512)
+    .png()
+    .toFile(path.join(publicDir, 'pwa-512x512.png'));
+
+  await sharp(buffer)
+    .resize(192, 192)
+    .png()
+    .toFile(path.join(publicDir, 'pwa-192x192.png'));
+
+  await sharp(buffer)
+    .resize(180, 180)
+    .png()
+    .toFile(path.join(publicDir, 'apple-touch-icon.png'));
+
+  await sharp(buffer)
+    .resize(64, 64)
+    .png()
+    .toFile(path.join(publicDir, 'favicon.png'));
+
+  console.log('Icons generated successfully in /public');
+}
+
+generate().catch(console.error);
